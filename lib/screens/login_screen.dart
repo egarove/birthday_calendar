@@ -140,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
                     _errorGeneral!,
-                    style: const TextStyle(color: Colors.red),
+                    style: const TextStyle(color: AppTheme.errorColor),
                   ),
                 ),
 
@@ -165,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               });
 
                               try {
-                                UserCredential? user = await authService.signInWithEmail(
+                                UserCredential? user = await authService.LogInWithEmail(
                                   _email.text,
                                   _password.text,
                                 );

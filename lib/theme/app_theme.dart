@@ -37,6 +37,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: errorColor),
         ),
+        errorStyle: TextStyle(
+          color: errorColor,
+        ),
       ),
 
       elevatedButtonTheme: ElevatedButtonThemeData(
