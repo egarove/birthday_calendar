@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532653842811",
+    "project_id": "birthday-calendar-57a54",
+    "storage_bucket": "birthday-calendar-57a54.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532653842811:android:232bb9a33a1e050d0b9dde",
+        "android_client_info": {
+          "package_name": "com.example.birthday_calendar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBX3bLjwAol9AWSepkty7iw6EbQNpci6Ho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
