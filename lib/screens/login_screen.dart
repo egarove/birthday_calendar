@@ -38,6 +38,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
 
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/fondo.jpg'),
@@ -57,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Bienvenido',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppTheme.secundaryColor
+                  color: Colors.black
                 ),
               ),
 
@@ -65,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Text(
                 'Inicia sesión para continuar',
-                style: TextStyle(fontSize: 14, color: AppTheme.secundaryColor),
+                style: TextStyle(fontSize: 14, color: const Color.fromARGB(255, 71, 71, 71)),
               ),
 
               const SizedBox(height: 25),
@@ -256,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('¿No tienes cuenta?', style: TextStyle(color: AppTheme.secundaryColor)),
+                  Text('¿No tienes cuenta?', style: TextStyle(color: Colors.black)),
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, 'register'),
                     child: const Text(
