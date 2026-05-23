@@ -51,7 +51,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/fondo.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
@@ -62,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: colorOnSurface)
               ),
               const Text(
-                'Rellena tus datos para comenzar', 
+                'Tu cumpleaños se guardaran en tu cuenta', 
                 style: TextStyle(fontSize: 14, color: Colors.grey)
               ),
               const SizedBox(height: 25),
@@ -72,7 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: CircleAvatar(
                         radius: 55,
                         backgroundColor: AppTheme.primaryColor,
-                        child:Icon(Icons.person, size: 55, color: Colors.grey[400])
+                        child:Icon(Icons.person, size: 55, color: AppTheme.backgroundColor)
                       ),
               ),
               const SizedBox(height: 25),
@@ -262,7 +269,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             ],
           ),
         ),
-      ),
+      ),)
     );
   }
 }

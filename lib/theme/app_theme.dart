@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
 
-  static const primaryColor = Color(0xFF373D20);
-  static const secundaryColor = Color(0xFF717744);
-  static const surfaceColor = Color(0xFFBCBD8B);
-  static const backgroundColor = Color(0xFFEFF1ED);
-  static const errorColor = Color(0xFF766153);
+  static const primaryColor = Color.fromARGB(255, 98, 140, 230);
+  static const secundaryColor = Color.fromARGB(255, 255, 255, 255);
+  static const surfaceColor = Color.fromARGB(255, 255, 163, 224);
+  static const backgroundColor = Color.fromARGB(255, 255, 255, 255);
+  static const errorColor = Color.fromARGB(255, 98, 140, 230);
 
   static ThemeData lightTheme() {
     return ThemeData(
@@ -54,7 +54,7 @@ class AppTheme {
       textTheme: const TextTheme(
         headlineLarge: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
         bodyMedium: TextStyle(color: primaryColor),
-        bodySmall: TextStyle(color: secundaryColor),
+        bodySmall: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
       ),
 
       iconTheme: const IconThemeData(color: primaryColor),

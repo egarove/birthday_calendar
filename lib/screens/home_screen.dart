@@ -9,54 +9,68 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       //AppBar omitido
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsetsGeometry.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              Spacer(), //ocupa el espacio y empuja el resto de elementos al fondo de la pagina
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/fondo.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
 
-              //LOGO
-              Container(
-                padding: EdgeInsets.all(35),
-                child: Icon(
-                  Icons.cake_rounded,
-                  size: 80,
+            child: Column(
+              children: [
+
+                Spacer(),
+
+                Container(
+                  padding: const EdgeInsets.all(35),
+                  child: const Icon(
+                    Icons.cake_rounded,
+                    size: 80,
+                  ),
                 ),
-              ),
 
-              SizedBox(height: 40,), //espacio
+                const SizedBox(height: 40),
 
-              //NOMBRE APP
-              Text(
-                'BIRTHDAY CALENDAR',
-                textAlign: TextAlign.center,     
-                style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),           
-              ),
-
-              Spacer(),
-
-              //BOTONES LOGIN/SINGUP
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch, //los hijos ocupen todo el ancho del column
-                children: [
-                  ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, 'login'),
-                    child: Text('INICIAR SESION'),
+                const Text(
+                  'BIRTHDAY CALENDAR',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
 
-                  SizedBox(height: 15,),
+                Spacer(),
 
-                  ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, 'register'),
-                    child: Text('REGISTRO'),
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
 
-                ],
-              ),
-              SizedBox(height: 40,)
-            ],
-          ),),
+                    ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, 'login'),
+                      child: const Text('INICIAR SESION'),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pushNamed(context, 'register'),
+                      child: const Text('REGISTRO'),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

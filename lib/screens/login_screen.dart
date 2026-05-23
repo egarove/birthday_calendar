@@ -37,7 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
 
-      body: SafeArea(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/fondo.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
           child: Column(
@@ -264,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
           ]),
         ),
-      ),
+      ),)
     );
   }
 }
