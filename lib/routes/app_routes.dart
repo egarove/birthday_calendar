@@ -9,6 +9,8 @@ class AppRoutes {
     'home' : (BuildContext context) => const HomeScreen(),
     'login' : (BuildContext context) => const LoginScreen(),
     'register' : (BuildContext context) => const RegisterScreen(),
-    /*'dashboard' : (BuildContext context) => const DashboardScreen(),*/
+    'dashboard' : (BuildContext context) => const DashboardScreen(),
+    'edit' : (BuildContext context) => const EditScreen(),
+    'insert' : (BuildContext context) => const InsertScreen(),
   };
 }

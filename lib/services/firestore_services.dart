@@ -7,7 +7,7 @@ class FirestoreService {
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseFirestore firestore = FirebaseFirestore.instance;  
 
-  Future<void> saveBirthday(String name, DateTime birthday) async {
+  Future<void> saveBirthday(String name, String birthday) async {
     final uid = authentication.currentUser!.uid;
     final data = <String, dynamic>{
       'nombre': name,
@@ -21,14 +21,23 @@ class FirestoreService {
         .set(data);
   }
 
-  // Stream en tiempo real de los cumpleaños del usuario actual
-  Stream<QuerySnapshot> streamBirthdays() {
+  // devuelve los cumpleaños del usuario actual
+  Future<List> getBirthdays() async {
+    List birthdays = [];
+
     final uid = authentication.currentUser!.uid;
-    return firestore
-        .collection('usuarios')
-        .doc(uid)
-        .collection('cumpleaños')
-        .snapshots();
+    CollectionReference collectionReferenceBirthdays = firestore.collection('usuarios').doc(uid).collection('cumpleaños');
+
+    QuerySnapshot queryBirthdays = await collectionReferenceBirthdays.get();
+    for (var documento in queryBirthdays.docs) {
+      final Map<String, dynamic> data = documento.data() as Map<String, dynamic>;
+      final birthday = {
+        "nombre": data['nombre'],
+        "cumpleaños": data['cumpleaños']
+      };
+      birthdays.add(birthday);
+    }
+    return birthdays;
   }
 
   // Eliminar cumpleaños de Firestore
@@ -37,7 +46,7 @@ class FirestoreService {
     await firestore
         .collection('usuarios')
         .doc(uid)
-        .collection('apis')
+        .collection('cumpleaños')
         .doc(name)
         .delete();
   }

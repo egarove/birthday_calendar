@@ -180,11 +180,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
 
                                 if (user != null && mounted) {
-                                  Navigator.pushNamedAndRemoveUntil(
-                                    context,
-                                    'dashboard',
-                                    (route) => false,
-                                  );
+                                  Navigator.pushNamed(context, 'dashboard');
                                 }
                               } on FirebaseAuthException catch (e) {
                                 setState(() {

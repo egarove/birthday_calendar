@@ -1,9 +1,7 @@
-/*import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:birthday_calendar/services/firestore_services.dart';
 import 'package:birthday_calendar/services/authentication_services.dart';
 import 'package:birthday_calendar/theme/app_theme.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -13,27 +11,50 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  // Servicios
   final authService = AuthService();
   final firestoreService = FirestoreService();
+
+  // Future guardado para poder refrescar manualmente
+  late Future<List> birthdaysFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Cargamos los cumpleaños una sola vez al iniciar la pantalla
+    birthdaysFuture = firestoreService.getBirthdays();
+  }
+
+  /// Refresca los datos desde Firestore
+  void refreshBirthdays() {
+    setState(() {
+      birthdaysFuture = firestoreService.getBirthdays();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // APP BAR PRINCIPAL
       appBar: AppBar(
-        automaticallyImplyLeading: false, //elimina el boton de regresar
+        automaticallyImplyLeading: false,
         title: const Text(
           'Mis cumpleaños',
           style: TextStyle(
-            color: AppTheme.primaryColor,
+            color: AppTheme.backgroundColor,
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [          
-          IconButton( //boton que enviara a screen de cuenta (de momento cierra sesion)
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesion',
+
+        // Botón de logout
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: AppTheme.backgroundColor,),
+            tooltip: 'Cerrar sesión',
             onPressed: () async {
               await authService.signOut();
+
               if (context.mounted) {
                 Navigator.pushNamedAndRemoveUntil(
                   context,
@@ -45,203 +66,115 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: firestoreService.streamBirthdays(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
 
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error cargando cumpleaños',
-                style: TextStyle(color: AppTheme.secundaryColor),
-              ),
-            );
-          }
+      // CUERPO PRINCIPAL
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
 
-          final docs = snapshot.data?.docs ?? [];
+          // FUTURE BUILDER: carga datos de Firestore
+          child: FutureBuilder(
+            future: birthdaysFuture,
+            builder: (context, snapshot) {
 
-          if (docs.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.api, size: 72, color: AppTheme.secundaryColor),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No tiene cumpleaños guardados!',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: AppTheme.secundaryColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Click en + para añadir un cumpleaños',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AppTheme.secundaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+              // Estado de carga
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          return RefreshIndicator(
-            onRefresh: _onRefresh,
-            color: AppTheme.primaryColor,
-            child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
-              final apiName = data['api_name'] as String? ?? '';
-              final port = data['port'];
-              final db = data['db'] as String? ?? '';
-              final columns =
-                  (data['columns'] as List<dynamic>?)?.cast<String>() ?? [];
-              final endpoints =
-                  (data['endpoints'] as List<dynamic>?)
-                      ?.map((e) => Map<String, dynamic>.from(e as Map))
-                      .toList() ??
-                  [];
+              // Error en Firestore
+              if (snapshot.hasError) {
+                return Center(
+                  child: Text('Error: ${snapshot.error}'),
+                );
+              }
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                color: AppTheme.surfaceColor,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(12),
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    'api-detail',
-                    arguments: {
-                      'api_name': apiName,
-                      'port': port,
-                      'backup_port': data['backup_port'],
-                      'db': db,
-                      'columns': columns,
-                      'endpoints': endpoints,
-                      'ui_url': data['ui_url'],
-                    },
-                  ),
-                  child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              // Lista vacía
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center, //posicion de los hijos Text
                     children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              apiName,
-                              style: const TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            _InfoRow(label: 'Puerto', value: port.toString()),
-                            _InfoRow(label: 'Base de datos', value: db),
-                            _InfoRow(
-                              label: 'Columnas',
-                              value: columns.isNotEmpty
-                                  ? columns.join(', ')
-                                  : '—',
-                            ),
-                          ],
+                      Icon(Icons.cake_rounded, size: 72, color: AppTheme.primaryColor),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No tienes cumpleaños registrados',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: AppTheme.primaryColor,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                        tooltip: 'Eliminar API',
-                        onPressed: () => _confirmDelete(
-                          context,
-                          apiName,
-                          apiService,
-                          authService,
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Pulsa el botón + para registar un cumpleaños!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.primaryColor,
                         ),
                       ),
                     ],
                   ),
-                ),
-                ),
+                );
+              }
+
+              // LISTA DE CUMPLEAÑOS
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+
+                itemBuilder: (context, index) {
+                  final birthday = snapshot.data![index];
+
+                  return GestureDetector(
+                    onTap: () async {
+                      // Navegamos a editar y cuando vuelva refrescamos datos
+                      await Navigator.pushNamed(
+                        context,
+                        'edit',
+                        arguments: birthday,
+                      );
+
+                      // refresca datos al volver (despues de editar o insertar)
+                      refreshBirthdays();
+                    },
+
+                    // TARJETA 
+                    child: Card(
+                      elevation: 10,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+
+                      child: ListTile(
+                        title: Text(birthday['nombre']),
+
+                        subtitle: Text(
+                          birthday['cumpleaños'].toString(),
+                        ),
+
+                        trailing: const Icon(Icons.edit),
+                      ),
+                    ),
+                  );
+                },
               );
             },
           ),
-          );
-        },
+        ),
       ),
+
+      // BOTÓN (crear cumpleaños)
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pushNamed(context, 'crear-api'),
+        onPressed: () async {
+          // Espera a que vuelva de crear
+          await Navigator.pushNamed(context, 'insert');
+
+          // refresca lista
+          refreshBirthdays();
+        },
+
         backgroundColor: AppTheme.primaryColor,
-        tooltip: 'Nueva API',
+        tooltip: 'Nuevo cumpleaños',
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
-
-  void _confirmDelete(
-    BuildContext context,
-    String apiName,
-    ApiService apiService,
-    AuthService authService,
-  ) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        title: const Text('Eliminar API'),
-        content: Text(
-          '¿Eliminar la API "$apiName"? Esta acción no se puede deshacer.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              try {
-                await apiService.eliminarApi(apiName);
-                await authService.eliminarApiFirestore(apiName);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('API eliminada correctamente'),
-                    ),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        e.toString().replaceFirst('Exception: ', ''),
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text(
-              'Eliminar',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}*/
+}
