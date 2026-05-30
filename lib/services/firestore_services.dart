@@ -36,7 +36,40 @@ class FirestoreService {
         "cumpleaños": data['cumpleaños']
       };
       birthdays.add(birthday);
-    }
+    } 
+    //ordenamos los cumpleaños antes de devolverlos
+    birthdays.sort((birth1, birth2) {
+      final now = DateTime.now();
+
+      DateTime nextBirthday(String birthday) {
+          final parts = birthday.split('-');
+
+          final day = int.parse(parts[0]);
+          final month = int.parse(parts[1]);
+
+          var date = DateTime(
+            now.year,
+            month,
+            day,
+          );
+
+          // Si ya pasó este año, usar el año siguiente
+          if (date.isBefore(now)) {
+            date = DateTime(
+              now.year + 1,
+              month,
+              day,
+            );
+          }
+
+          return date;
+        }
+
+      final date1 = nextBirthday(birth1['cumpleaños']);
+      final date2 = nextBirthday(birth2['cumpleaños']);
+
+    return date1.compareTo(date2);
+    });
     return birthdays;
   }
 
