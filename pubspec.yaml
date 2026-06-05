@@ -40,6 +40,10 @@ dependencies:
   firebase_auth: ^5.7.0
   google_sign_in: ^6.2.1
   font_awesome_flutter: ^10.7.0
+  firebase_messaging: ^15.2.10
+  flutter_local_notifications: ^17.2.2
+  timezone: ^0.9.4
+  flutter_timezone: ^5.1.0
 
 dev_dependencies:
   flutter_test:

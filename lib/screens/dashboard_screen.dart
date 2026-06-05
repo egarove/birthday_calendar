@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:birthday_calendar/services/firestore_services.dart';
 import 'package:birthday_calendar/services/authentication_services.dart';
 import 'package:birthday_calendar/theme/app_theme.dart';
+import 'package:birthday_calendar/services/notification_services.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -24,13 +25,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     // Cargamos los cumpleaños una sola vez al iniciar la pantalla
     birthdaysFuture = firestoreService.getBirthdays();
+
+    // Inicializar y pedir permisos de notificaciones al arrancar
+    _setupNotifications();
   }
 
-  /// Refresca los datos desde Firestore
+  Future<void> _setupNotifications() async {
+    final notificationService = NotificationService();
+    await notificationService.requestPermissions();
+    await notificationService.scheduleBirthdayNotifications();
+  }
+
+  /// Refresca los datos desde Firestore y reprograma las notificaciones locales
   void refreshBirthdays() {
     setState(() {
       birthdaysFuture = firestoreService.getBirthdays();
     });
+    NotificationService().scheduleBirthdayNotifications();
   }
 
   @override
@@ -47,12 +58,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
 
-        // Botón de logout
+        // Botones de acción
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_active, color: AppTheme.backgroundColor,),
+            tooltip: 'Probar Notificación',
+            onPressed: () async {
+              await NotificationService().showTestNotification();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout, color: AppTheme.backgroundColor,),
             tooltip: 'Cerrar sesión',
             onPressed: () async {
+              // Limpiar todas las notificaciones al cerrar sesión para evitar fugas de datos
+              await NotificationService().cancelAllNotifications();
               await authService.signOut();
 
               if (context.mounted) {
