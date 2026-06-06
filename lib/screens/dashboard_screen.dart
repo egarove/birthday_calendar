@@ -15,6 +15,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // Servicios
   final authService = AuthService();
   final firestoreService = FirestoreService();
+  final notificationService = NotificationService();
 
   // Future guardado para poder refrescar manualmente
   late Future<List> birthdaysFuture;
@@ -31,9 +32,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _setupNotifications() async {
-    final notificationService = NotificationService();
-    await notificationService.requestPermissions();
-    await notificationService.scheduleBirthdayNotifications();
+    try {
+      await notificationService.requestPermissions();
+      final count = await notificationService.scheduleBirthdayNotifications();
+      if (mounted) {
+        _showSnackBar('🔔 Se han programado $count notificaciones de cumpleaños');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('⚠️ Error al programar notificaciones: $e', isError: true);
+      }
+    }
   }
 
   /// Refresca los datos desde Firestore y reprograma las notificaciones locales
@@ -41,7 +50,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       birthdaysFuture = firestoreService.getBirthdays();
     });
-    NotificationService().scheduleBirthdayNotifications();
+    _rescheduleNotifications();
+  }
+
+  Future<void> _rescheduleNotifications() async {
+    try {
+      final count = await notificationService.scheduleBirthdayNotifications();
+      if (mounted) {
+        _showSnackBar('🔔 Se han actualizado $count notificaciones');
+      }
+    } catch (e) {
+      if (mounted) {
+        _showSnackBar('⚠️ Error al reprogramar notificaciones: $e', isError: true);
+      }
+    }
+  }
+
+  /// Muestra un SnackBar informativo
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 3),
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
   }
 
   @override
@@ -60,11 +97,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         // Botones de acción
         actions: [
+          // Botón: notificación instantánea de prueba
           IconButton(
             icon: const Icon(Icons.notifications_active, color: AppTheme.backgroundColor,),
-            tooltip: 'Probar Notificación',
+            tooltip: 'Probar notificación instantánea',
             onPressed: () async {
-              await NotificationService().showTestNotification();
+              await notificationService.showTestNotification();
+              if (mounted) {
+                _showSnackBar('🚀 Notificación instantánea enviada');
+              }
+            },
+          ),
+          // Botón: notificación programada de prueba (zonedSchedule, 15 seg)
+          IconButton(
+            icon: const Icon(Icons.schedule, color: AppTheme.backgroundColor,),
+            tooltip: 'Probar notificación programada (15s)',
+            onPressed: () async {
+              try {
+                final timeStr = await notificationService.showTestScheduledNotification();
+                if (mounted) {
+                  _showSnackBar('⏰ Notificación programada para las $timeStr (en ~15s)');
+                }
+              } catch (e) {
+                if (mounted) {
+                  _showSnackBar('⚠️ Error en zonedSchedule: $e', isError: true);
+                }
+              }
             },
           ),
           IconButton(
@@ -72,7 +130,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             tooltip: 'Cerrar sesión',
             onPressed: () async {
               // Limpiar todas las notificaciones al cerrar sesión para evitar fugas de datos
-              await NotificationService().cancelAllNotifications();
+              await notificationService.cancelAllNotifications();
               await authService.signOut();
 
               if (context.mounted) {
@@ -159,9 +217,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     },
 
                     // TARJETA 
-                    child: Card(
+                    child: Card(                      
                       elevation: 10,
-                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      margin: const EdgeInsets.only(bottom: 10, right: 20, left: 20, top: 10),
 
                       child: ListTile(
                         title: Text(birthday['nombre']),

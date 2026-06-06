@@ -26,7 +26,6 @@ class NotificationService {
       final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
       tz.setLocalLocation(tz.getLocation(timeZoneName));
     } catch (e) {
-      print("No se pudo obtener la zona horaria local, usando UTC por defecto: $e");
       tz.setLocalLocation(tz.getLocation('UTC'));
     }
 
@@ -49,7 +48,7 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        print("Notificación presionada con payload: ${details.payload}");
+        // Callback cuando el usuario toca la notificación
       },
     );
 
@@ -60,14 +59,14 @@ class NotificationService {
   Future<void> requestPermissions() async {
     // Permisos FCM
     await _firebaseMessaging.requestPermission();
-    final token = await _firebaseMessaging.getToken();
-    print("FCM Token: $token");
+    await _firebaseMessaging.getToken();
 
     // Permisos locales en Android 13+
     final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
     if (androidPlugin != null) {
       await androidPlugin.requestNotificationsPermission();
+      await androidPlugin.requestExactAlarmsPermission();
     }
 
     // Permisos locales en iOS
@@ -82,34 +81,45 @@ class NotificationService {
     }
   }
 
-  /// Recupera los cumpleaños desde Firestore y programa las notificaciones
-  Future<void> scheduleBirthdayNotifications() async {
-    // Asegurarse de que esté inicializado
-    await initialize();
-
-    // 1. Cancelar todas las notificaciones previamente programadas para evitar duplicados
-    await _localNotifications.cancelAll();
-    print("Todas las notificaciones previas han sido canceladas.");
-
-    // 2. Obtener lista de cumpleaños de Firestore
-    final firestoreService = FirestoreService();
-    final List birthdays = await firestoreService.getBirthdays();
-
-    final now = tz.TZDateTime.now(tz.local);
-
-    // Configuración para Android e iOS
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+  /// Configuración de notificación reutilizable para el canal de cumpleaños
+  static const NotificationDetails _birthdayNotificationDetails = NotificationDetails(
+    android: AndroidNotificationDetails(
       'cumpleanos_channel_id',
       'Cumpleaños',
       channelDescription: 'Notificaciones para recordatorios de cumpleaños',
       importance: Importance.max,
       priority: Priority.high,
-    );
+    ),
+    iOS: DarwinNotificationDetails(),
+  );
 
-    const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
-      iOS: DarwinNotificationDetails(),
-    );
+  /// Recupera los cumpleaños desde Firestore y programa las notificaciones.
+  /// Devuelve el número de notificaciones programadas exitosamente.
+  Future<int> scheduleBirthdayNotifications() async {
+    await initialize();
+
+    // Cancelar todas las notificaciones previamente programadas para evitar duplicados
+    await _localNotifications.cancelAll();
+
+    // Obtener lista de cumpleaños de Firestore
+    final firestoreService = FirestoreService();
+    final List birthdays = await firestoreService.getBirthdays();
+
+    if (birthdays.isEmpty) return 0;
+
+    final now = tz.TZDateTime.now(tz.local);
+    int scheduledCount = 0;
+
+    // Verificar si se tiene permiso para alarmas exactas
+    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    bool canScheduleExact = false;
+    if (androidPlugin != null) {
+      canScheduleExact = await androidPlugin.canScheduleExactNotifications() ?? false;
+    }
+    final androidScheduleMode = canScheduleExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
 
     for (var birthday in birthdays) {
       final String name = birthday['nombre'] ?? '';
@@ -133,7 +143,7 @@ class NotificationService {
           month,
           day,
           9,
-          0,
+          00,
         );
 
         // Si el cumpleaños de este año ya pasó, programarlo para el próximo año
@@ -156,40 +166,39 @@ class NotificationService {
           '¡Hoy cumple años $name! 🎉',
           'No te olvides de desearle un feliz cumpleaños a $name.',
           scheduledDate,
-          platformDetails,
-          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          _birthdayNotificationDetails,
+          androidScheduleMode: androidScheduleMode,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
           matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
         );
 
-        print("Programada notificación para $name el $scheduledDate con ID $notificationId");
+        scheduledCount++;
       } catch (e) {
-        print("Error programando notificación para $name ($birthdayStr): $e");
+        // Si falla una notificación individual, continuamos con las demás
       }
     }
+
+    return scheduledCount;
   }
 
   /// Cancela todas las notificaciones
   Future<void> cancelAllNotifications() async {
     await _localNotifications.cancelAll();
-    print("Todas las notificaciones locales han sido canceladas.");
   }
 
-  /// Muestra una notificación instantánea de prueba
+  /// Muestra una notificación instantánea de prueba (usa .show, siempre funciona)
   Future<void> showTestNotification() async {
     await initialize();
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'test_channel_id',
-      'Prueba de Notificaciones',
-      channelDescription: 'Canal para probar las notificaciones',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
-
     const NotificationDetails platformDetails = NotificationDetails(
-      android: androidDetails,
+      android: AndroidNotificationDetails(
+        'test_channel_id',
+        'Prueba de Notificaciones',
+        channelDescription: 'Canal para probar las notificaciones',
+        importance: Importance.max,
+        priority: Priority.high,
+      ),
       iOS: DarwinNotificationDetails(),
     );
 
@@ -199,6 +208,42 @@ class NotificationService {
       'Si estás leyendo esto, las notificaciones locales están configuradas correctamente.',
       platformDetails,
     );
-    print("Notificación de prueba enviada.");
+  }
+
+  /// Programa una notificación de prueba con zonedSchedule para dentro de 15 segundos.
+  /// Esto verifica que zonedSchedule funciona correctamente en el dispositivo.
+  /// Devuelve la hora programada como String para mostrar al usuario.
+  Future<String> showTestScheduledNotification() async {
+    await initialize();
+
+    final now = tz.TZDateTime.now(tz.local);
+    final scheduledDate = now.add(const Duration(seconds: 15));
+
+    // Verificar si se tiene permiso para alarmas exactas
+    final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    bool canScheduleExact = false;
+    if (androidPlugin != null) {
+      canScheduleExact = await androidPlugin.canScheduleExactNotifications() ?? false;
+    }
+    final androidScheduleMode = canScheduleExact
+        ? AndroidScheduleMode.exactAllowWhileIdle
+        : AndroidScheduleMode.inexactAllowWhileIdle;
+
+    await _localNotifications.zonedSchedule(
+      99998,
+      '¡Prueba programada exitosa! ⏰',
+      'Esta notificación se programó con zonedSchedule y llegó correctamente.',
+      scheduledDate,
+      _birthdayNotificationDetails,
+      androidScheduleMode: androidScheduleMode,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+
+    final timeStr = '${scheduledDate.hour.toString().padLeft(2, '0')}:'
+        '${scheduledDate.minute.toString().padLeft(2, '0')}:'
+        '${scheduledDate.second.toString().padLeft(2, '0')}';
+    return timeStr;
   }
 }
