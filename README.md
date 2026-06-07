@@ -1,4 +1,4 @@
-<img width="1254" height="1254" alt="ic_launcher" src="https://github.com/user-attachments/assets/b95cd208-cda5-4b68-b30c-d0e27b03beea" />
+<img width="1254" height="1254" alt="ic_launcher" src="https://github.com/user-attachments/assets/b95cd208-cda5-4b68-b30c-d0e27b03beea" width="500"/>
 
 # Birthday Calendar 🎂
 
@@ -36,12 +36,12 @@
 
 ## Capturas
 
-<img width="1001" height="2048" alt="WhatsApp Image 2026-06-07 at 11 39 21" src="https://github.com/user-attachments/assets/23b7bf1a-3de1-41ec-a7db-7ee954376700" />
-<img width="1080" height="2186" alt="WhatsApp Image 2026-06-07 at 11 39 22" src="https://github.com/user-attachments/assets/afd9c0b4-8db7-47d1-830f-f54044533bb8" />
-<img width="1080" height="2159" alt="WhatsApp Image 2026-06-07 at 11 39 21 (3)" src="https://github.com/user-attachments/assets/1de02d5e-7b3c-4a8f-82ba-f6b2e26db80a" />
-<img width="1080" height="2167" alt="WhatsApp Image 2026-06-07 at 11 39 21 (2)" src="https://github.com/user-attachments/assets/918542e4-bf17-4c4b-8848-3b2dde472457" />
-<img width="1010" height="2048" alt="WhatsApp Image 2026-06-07 at 11 39 21 (1)" src="https://github.com/user-attachments/assets/593a2e99-49c4-4e24-a852-d3df1d0698e9" />
-<img width="1080" height="338" alt="WhatsApp Image 2026-06-07 at 11 40 42" src="https://github.com/user-attachments/assets/cdb07b27-d6e3-4505-81ee-8dc469670fbb" />
+<img width="1001" height="2048" alt="WhatsApp Image 2026-06-07 at 11 39 21" src="https://github.com/user-attachments/assets/23b7bf1a-3de1-41ec-a7db-7ee954376700" width="250"/>
+<img width="1080" height="2186" alt="WhatsApp Image 2026-06-07 at 11 39 22" src="https://github.com/user-attachments/assets/afd9c0b4-8db7-47d1-830f-f54044533bb8" width="250"/>
+<img width="1080" height="2159" alt="WhatsApp Image 2026-06-07 at 11 39 21 (3)" src="https://github.com/user-attachments/assets/1de02d5e-7b3c-4a8f-82ba-f6b2e26db80a" width="250"/>
+<img width="1080" height="2167" alt="WhatsApp Image 2026-06-07 at 11 39 21 (2)" src="https://github.com/user-attachments/assets/918542e4-bf17-4c4b-8848-3b2dde472457" width="250"/>
+<img width="1010" height="2048" alt="WhatsApp Image 2026-06-07 at 11 39 21 (1)" src="https://github.com/user-attachments/assets/593a2e99-49c4-4e24-a852-d3df1d0698e9" width="250"/>
+<img width="1080" height="338" alt="WhatsApp Image 2026-06-07 at 11 40 42" src="https://github.com/user-attachments/assets/cdb07b27-d6e3-4505-81ee-8dc469670fbb" width="250"/>
 
 ---
 
