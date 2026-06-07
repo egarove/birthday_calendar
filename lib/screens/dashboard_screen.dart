@@ -24,11 +24,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
 
+    // Registrar la última visita del usuario
+    _updateLastVisit();
+
     // Cargamos los cumpleaños una sola vez al iniciar la pantalla
     birthdaysFuture = firestoreService.getBirthdays();
 
     // Inicializar y pedir permisos de notificaciones al arrancar
     _setupNotifications();
+  }
+
+  Future<void> _updateLastVisit() async {
+    try {
+      await firestoreService.updateLastVisit();
+    } catch (e) {
+      // Ignorar errores de red para no interrumpir el flujo del usuario
+    }
   }
 
   Future<void> _setupNotifications() async {
@@ -97,34 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
         // Botones de acción
         actions: [
-          // Botón: notificación instantánea de prueba
-          IconButton(
-            icon: const Icon(Icons.notifications_active, color: AppTheme.backgroundColor,),
-            tooltip: 'Probar notificación instantánea',
-            onPressed: () async {
-              await notificationService.showTestNotification();
-              if (mounted) {
-                _showSnackBar('🚀 Notificación instantánea enviada');
-              }
-            },
-          ),
-          // Botón: notificación programada de prueba (zonedSchedule, 15 seg)
-          IconButton(
-            icon: const Icon(Icons.schedule, color: AppTheme.backgroundColor,),
-            tooltip: 'Probar notificación programada (15s)',
-            onPressed: () async {
-              try {
-                final timeStr = await notificationService.showTestScheduledNotification();
-                if (mounted) {
-                  _showSnackBar('⏰ Notificación programada para las $timeStr (en ~15s)');
-                }
-              } catch (e) {
-                if (mounted) {
-                  _showSnackBar('⚠️ Error en zonedSchedule: $e', isError: true);
-                }
-              }
-            },
-          ),
+          //boton para cerrar sesion y borrar notificaciones
           IconButton(
             icon: const Icon(Icons.logout, color: AppTheme.backgroundColor,),
             tooltip: 'Cerrar sesión',

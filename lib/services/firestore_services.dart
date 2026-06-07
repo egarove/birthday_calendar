@@ -83,4 +83,14 @@ class FirestoreService {
         .doc(name)
         .delete();
   }
+
+  // Registrar/actualizar la fecha de última visita del usuario actual
+  Future<void> updateLastVisit() async {
+    final user = authentication.currentUser;
+    if (user != null) {
+      await firestore.collection('usuarios').doc(user.uid).set({
+        'ultima_visita': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+  }
 }

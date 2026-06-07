@@ -1,16 +1,53 @@
-# birthday_calendar
+# Birthday Calendar 🎂
 
-A new Flutter project.
+¡Nunca más olvides un cumpleaños! **Birthday Calendar** es una aplicación móvil desarrollada en **Flutter** que te permite registrar los cumpleaños de tus seres queridos, almacenarlos de forma segura en la nube y recibir notificaciones personalizadas tanto el día del cumpleaños como el día anterior.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Características
 
-A few resources to get you started if this is your first Flutter project:
+- **Autenticación**: Registro e inicio de sesión con correo/contraseña o cuenta de Google (Firebase Auth).
+- **Sincronización en la nube**: Datos almacenados en Cloud Firestore, accesibles desde cualquier dispositivo.
+- **Notificaciones locales inteligentes**:
+  - Notificación el **día del cumpleaños** a las 00:00 (medianoche).
+  - Notificación el **día de antes** a las 10:00 para que tengas tiempo de comprar un regalo.
+  - Alerta de **inactividad a los 360 días** recordándote abrir la app para que las notificaciones se reprogramen.
+- **Orden automático**: La lista de cumpleaños se ordena por la proximidad de la siguiente fecha.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tecnologías empleadas
+
+- **Framework**: [Flutter](https://flutter.dev/) (Dart)
+- **Backend**: [Firebase](https://firebase.google.com/) — Firestore, Firebase Auth, Google Sign-In
+- **Notificaciones Locales**: `flutter_local_notifications`
+- **Timezones**: `timezone` y `flutter_timezone`
+
+---
+
+## Requisitos Previos
+
+- **Flutter SDK** (versión estable más reciente)
+- **Android Studio** o **VS Code** con extensiones de Flutter/Dart
+
+---
+
+## Configuración y Despliegue
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/birthday_calendar.git
+cd birthday_calendar
+```
+
+### 2. Instalar dependencias
+```bash
+flutter pub get
+```
+
+### 3. Ejecutar la aplicación
+```bash
+flutter run
+```
+
+---

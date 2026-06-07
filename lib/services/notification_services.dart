@@ -136,14 +136,14 @@ class NotificationService {
 
         if (day == null || month == null) continue;
 
-        // Programar para las 9:00 AM del día del cumpleaños
+        // Programar para las 00:00 del día del cumpleaños
         var scheduledDate = tz.TZDateTime(
           tz.local,
           now.year,
           month,
           day,
-          9,
-          00,
+          0,
+          0,
         );
 
         // Si el cumpleaños de este año ya pasó, programarlo para el próximo año
@@ -153,7 +153,7 @@ class NotificationService {
             now.year + 1,
             month,
             day,
-            9,
+            0,
             0,
           );
         }
@@ -173,10 +173,86 @@ class NotificationService {
           matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
         );
 
+        // Programar notificación de recordatorio el día anterior al cumpleaños a las 10:00
+        try {
+          // Calculamos el día anterior explícitamente a las 10:00 AM
+          final birthdayYearForReminder = scheduledDate.year;
+          final dayBefore = scheduledDate.subtract(const Duration(days: 1));
+          var dayBeforeDate = tz.TZDateTime(
+            tz.local,
+            birthdayYearForReminder,
+            dayBefore.month,
+            dayBefore.day,
+            10,
+            0,
+          );
+
+          // Si ya pasó, programar para el año siguiente
+          if (dayBeforeDate.isBefore(now)) {
+            final nextYearDayBefore = tz.TZDateTime(
+              tz.local,
+              scheduledDate.year + 1,
+              month,
+              day,
+              0,
+              0,
+            ).subtract(const Duration(days: 1));
+            dayBeforeDate = tz.TZDateTime(
+              tz.local,
+              nextYearDayBefore.year,
+              nextYearDayBefore.month,
+              nextYearDayBefore.day,
+              10,
+              0,
+            );
+          }
+
+          final int notificationIdBefore = (name.hashCode.abs() % 100000) + 100000;
+
+          await _localNotifications.zonedSchedule(
+            notificationIdBefore,
+            '¡Mañana es el cumpleaños de $name! 🎁',
+            '¿Le has comprado ya un regalo? No te olvides de felicitarle mañana.',
+            dayBeforeDate,
+            _birthdayNotificationDetails,
+            androidScheduleMode: androidScheduleMode,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
+          );
+        } catch (e) {
+          // Si falla la del día de antes, continuamos
+        }
+
         scheduledCount++;
       } catch (e) {
         // Si falla una notificación individual, continuamos con las demás
       }
+    }
+
+    // Programar notificación de inactividad por 360 días
+    try {
+      final inactivityDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        10,
+        0,
+      ).add(const Duration(days: 360));
+
+      await _localNotifications.zonedSchedule(
+        99990,
+        '¡Te echamos de menos! ❤️',
+        'Entra en la app para mantener tus recordatorios de cumpleaños actualizados.',
+        inactivityDate,
+        _birthdayNotificationDetails,
+        androidScheduleMode: androidScheduleMode,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } catch (e) {
+      // Si falla la de inactividad, continuamos
     }
 
     return scheduledCount;
