@@ -170,7 +170,7 @@ class NotificationService {
           androidScheduleMode: androidScheduleMode,
           uiLocalNotificationDateInterpretation:
               UILocalNotificationDateInterpretation.absoluteTime,
-          matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
+          matchDateTimeComponents: DateTimeComponents.dateAndTime,
         );
 
         // Programar notificación de recordatorio el día anterior al cumpleaños a las 10:00
@@ -218,7 +218,7 @@ class NotificationService {
             androidScheduleMode: androidScheduleMode,
             uiLocalNotificationDateInterpretation:
                 UILocalNotificationDateInterpretation.absoluteTime,
-            matchDateTimeComponents: DateTimeComponents.dayOfMonthAndTime,
+            matchDateTimeComponents: DateTimeComponents.dateAndTime,
           );
         } catch (e) {
           // Si falla la del día de antes, continuamos
