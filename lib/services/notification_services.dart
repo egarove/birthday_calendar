@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -175,36 +176,34 @@ class NotificationService {
 
         // Programar notificación de recordatorio el día anterior al cumpleaños a las 10:00
         try {
-          // Calculamos el día anterior explícitamente a las 10:00 AM
-          final birthdayYearForReminder = scheduledDate.year;
-          final dayBefore = scheduledDate.subtract(const Duration(days: 1));
+          // Calculamos el día anterior de forma segura usando aritmética de calendario (day - 1)
           var dayBeforeDate = tz.TZDateTime(
             tz.local,
-            birthdayYearForReminder,
-            dayBefore.month,
-            dayBefore.day,
+            scheduledDate.year,
+            scheduledDate.month,
+            scheduledDate.day - 1,
             10,
             0,
           );
 
-          // Si ya pasó, programar para el año siguiente
+          // Si el momento del recordatorio ya pasó para este año
           if (dayBeforeDate.isBefore(now)) {
-            final nextYearDayBefore = tz.TZDateTime(
-              tz.local,
-              scheduledDate.year + 1,
-              month,
-              day,
-              0,
-              0,
-            ).subtract(const Duration(days: 1));
-            dayBeforeDate = tz.TZDateTime(
-              tz.local,
-              nextYearDayBefore.year,
-              nextYearDayBefore.month,
-              nextYearDayBefore.day,
-              10,
-              0,
-            );
+            // Caso A: El cumpleaños es en el futuro (ej. mañana), pero la hora del recordatorio (10:00 AM) de hoy ya pasó.
+            // En este caso, queremos notificar al usuario de inmediato (en 10 segundos) en lugar de esperar al año que viene.
+            if (scheduledDate.isAfter(now)) {
+              dayBeforeDate = now.add(const Duration(seconds: 10));
+            } else {
+              // Caso B: El cumpleaños ya pasó o es hoy y ya pasó la hora del cumpleaños.
+              // Programamos el recordatorio para el año que viene.
+              dayBeforeDate = tz.TZDateTime(
+                tz.local,
+                scheduledDate.year + 1,
+                month,
+                day - 1,
+                10,
+                0,
+              );
+            }
           }
 
           final int notificationIdBefore = (name.hashCode.abs() % 100000) + 100000;
@@ -220,8 +219,9 @@ class NotificationService {
                 UILocalNotificationDateInterpretation.absoluteTime,
             matchDateTimeComponents: DateTimeComponents.dateAndTime,
           );
-        } catch (e) {
-          // Si falla la del día de antes, continuamos
+        } catch (e, stackTrace) {
+          // Si falla la del día de antes, continuamos pero registrando el error
+          dev.log('Error al programar recordatorio de regalo para $name: $e', error: e, stackTrace: stackTrace);
         }
 
         scheduledCount++;
